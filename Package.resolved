@@ -1,0 +1,15 @@
+{
+  "originHash" : "71ede1572fe09512c9cb34bc34733db4b18342c300051cc43923fb7b2980babb",
+  "pins" : [
+    {
+      "identity" : "zip",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LottieFiles/Zip.git",
+      "state" : {
+        "revision" : "e16ccb1e0e772b280a2e177e2b6d4d99dd8f9419",
+        "version" : "2.1.2"
+      }
+    }
+  ],
+  "version" : 3
+}
