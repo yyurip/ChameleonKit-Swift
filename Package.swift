@@ -5,19 +5,27 @@ import PackageDescription
 
 let package = Package(
     name: "LottieColorize",
+    platforms: [
+        .iOS(.v15),
+        .macOS(.v10_13)
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "LottieColorize",
             targets: ["LottieColorize"]),
     ],
+    dependencies: [
+        .package(name: "Zip", url: "https://github.com/LottieFiles/Zip.git", from: "2.1.2")
+    ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "LottieColorize"),
+            name: "LottieColorize",
+            dependencies: ["Zip"],
+            path: "Sources"
+        ),
         .testTarget(
             name: "LottieColorizeTests",
-            dependencies: ["LottieColorize"]),
+            dependencies: ["LottieColorize"]
+        )
     ]
 )
