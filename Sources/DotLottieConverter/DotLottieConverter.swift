@@ -8,51 +8,62 @@
 import Foundation
 import Zip
 
-struct DotLottieConverter {
-    static func convert(
+public struct DotLottieConverter {
+    // Converts many JSON files into DotLottieFiles
+    public static func convert(
         files: [URL],
         outputFolder: URL,
         color: String = "#ffffff",
-        noLoop: Bool = false
-    ) async throws {
+        loop: Bool = true
+    ) throws {
         for file in files {
-
-            try await convert(
+            try convert(
                 file: file,
                 output: outputFolder,
                 themeColor: color,
-                loop: !noLoop
+                loop: loop
             )
         }
     }
     
-    static func convert(
+    // Converts a JSON file into DotLottieFile
+    public static func convert(
         file: URL,
         output: URL,
         themeColor: String = "#ffffff",
         loop: Bool = true
     ) throws {
+        // Create needed directories
         try createAnimationsDirectory()
+        // Copy json File
         try copyLottieFileToAnimationsDirectory(file)
+        // Create manifest file
         let filename = file.deletingPathExtension().lastPathComponent
         try createManifest(
             fileName: filename,
             themeColor: themeColor,
             loop: loop
         )
+        // Zipping
         Zip.addCustomFileExtension(dotLottieExtension)
         try Zip.zipFiles(
             paths: [
                 animationsDirectory,
                 manifestFileURL
             ],
-            zipFilePath: output.appendingPathComponent(filename).appendingPathExtension(dotLottieExtension),
+            zipFilePath: zipFilePath(
+                destination: output,
+                filename: filename
+            ),
             password: nil,
             compression: .DefaultCompression,
-            progress: { progress in
+            progress: {
+                progress in
                 debugPrint("Compressing file: \(progress)")
             }
         )
+        // Removing compress directory
+        try FileManager.default.removeItem(at: temporaryCompressDirectory)
     }
 }
 
@@ -73,7 +84,7 @@ private extension DotLottieConverter {
             ],
             version: "1.0",
             author: "LottieFiles",
-            generator: "LottieFiles - LottieColorize"
+            generator: "LottieFiles - DotLottieConverter - Lottie Colorize"
         )
         
         let manifestData = try manifest.encode()
@@ -87,35 +98,45 @@ private extension DotLottieConverter {
     }
     
     static func createAnimationsDirectory() throws {
-        try FileManager.default.createDirectory(
+        try? FileManager.default.createDirectory(
+            at: temporaryCompressDirectory,
+            withIntermediateDirectories: true,
+            attributes: nil
+        )
+        try? FileManager.default.createDirectory(
             at: animationsDirectory,
             withIntermediateDirectories: true,
             attributes: nil
         )
     }
+    
+    // Return zip path - /filename.lottie
+    static func zipFilePath(destination: URL, filename: String) -> URL {
+        destination
+            .appendingPathComponent(filename)
+            .appendingPathExtension(dotLottieExtension)
+    }
 }
 
 private extension DotLottieConverter {
-    static let temporaryDirectory = FileManager.default.temporaryDirectory
+    static let temporaryCompressDirectory = FileManager.default.temporaryDirectory
+        .appendingPathComponent(compressDirectoryName)
     
     static var animationsDirectory: URL {
-        temporaryDirectory
+        temporaryCompressDirectory
             .appendingPathComponent(animationsDirectoryName)
     }
     
     static var manifestFileURL: URL {
-        temporaryDirectory
+        temporaryCompressDirectory
             .appendingPathComponent(manifestFilename)
             .appendingPathExtension(jsonExtension)
     }
     
     static let dotLottieExtension = "lottie"
     static let animationsDirectoryName = "animations"
+    static let compressDirectoryName = "compress"
     static let jsonExtension = "json"
     static let manifestFilename = "manifest"
     
-}
-
-private enum DotLottieConverterError: Error {
-    case fileNotSupported
 }

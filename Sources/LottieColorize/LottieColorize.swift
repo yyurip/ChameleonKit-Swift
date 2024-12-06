@@ -1,4 +1,5 @@
 import SwiftUI
+import DotLottieConverter
 
 @available(macOS 11, *)
 public struct LottieColorize {

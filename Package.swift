@@ -12,7 +12,12 @@ let package = Package(
     products: [
         .library(
             name: "LottieColorize",
-            targets: ["LottieColorize"]),
+            targets: ["LottieColorize"]
+        ),
+        .library(
+            name: "DotLottieConverter",
+            targets: ["DotLottieConverter"]
+        )
     ],
     dependencies: [
         .package(name: "Zip", url: "https://github.com/LottieFiles/Zip.git", from: "2.1.2")
@@ -20,8 +25,13 @@ let package = Package(
     targets: [
         .target(
             name: "LottieColorize",
+            dependencies: ["DotLottieConverter"],
+            path: "Sources/LottieColorize"
+        ),
+        .target(
+            name: "DotLottieConverter",
             dependencies: ["Zip"],
-            path: "Sources"
+            path: "Sources/DotLottieConverter"
         ),
         .testTarget(
             name: "LottieColorizeTests",
