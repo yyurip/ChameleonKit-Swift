@@ -4,19 +4,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "LottieColorize",
+    name: "ChameleonKit",
     platforms: [
         .iOS(.v15),
         .macOS(.v10_13)
     ],
     products: [
         .library(
-            name: "LottieColorize",
-            targets: ["LottieColorize"]
+            name: "ChameleonColorizer",
+            targets: ["ChameleonColorizer"]
         ),
         .library(
-            name: "DotLottieConverter",
-            targets: ["DotLottieConverter"]
+            name: "ChameleonConverter",
+            targets: ["ChameleonConverter"]
         )
     ],
     dependencies: [
@@ -24,18 +24,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "LottieColorize",
-            dependencies: ["DotLottieConverter"],
-            path: "Sources/LottieColorize"
+            name: "ChameleonColorizer",
+            dependencies: ["ChameleonConverter"],
+            path: "Sources/ChameleonColorizer"
         ),
         .target(
-            name: "DotLottieConverter",
+            name: "ChameleonConverter",
             dependencies: ["Zip"],
-            path: "Sources/DotLottieConverter"
+            path: "Sources/ChameleonConverter"
         ),
         .testTarget(
-            name: "LottieColorizeTests",
-            dependencies: ["LottieColorize"]
+            name: "ChameleonColorizerTests",
+            dependencies: ["ChameleonColorizer"]
         )
     ]
 )

@@ -1,13 +1,13 @@
 //
-//  LottieAnimation.swift
-//  Chameleon
+//  DotLottieAnimation.swift
+//  ChameleonKit
 //
 //  Created by Ygor Yuri De Pinho Pessoa on 04.12.24.
 //
 
 import Foundation
 
-public struct LottieAnimation: Codable {
+public struct DotLottieAnimation: Codable {
     /// Id of Animation
     public var id: String
     

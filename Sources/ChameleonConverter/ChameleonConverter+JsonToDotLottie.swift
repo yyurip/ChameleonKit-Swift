@@ -1,5 +1,5 @@
 //
-//  DotLottieConverter.swift
+//  ChameleonConverter.swift
 //
 //
 //  Created by Ygor Yuri De Pinho Pessoa on 04.12.24.
@@ -8,16 +8,16 @@
 import Foundation
 import Zip
 
-public struct DotLottieConverter {
+public struct ChameleonConverter {
     // Converts many JSON files into DotLottieFiles
-    public static func convert(
+    public static func convertJsonToDotLottie(
         files: [URL],
         outputFolder: URL,
         color: String = "#ffffff",
         loop: Bool = true
     ) throws {
         for file in files {
-            try convert(
+            try convertJsonToDotLottie(
                 file: file,
                 output: outputFolder,
                 themeColor: color,
@@ -27,7 +27,7 @@ public struct DotLottieConverter {
     }
     
     // Converts a JSON file into DotLottieFile
-    public static func convert(
+    public static func convertJsonToDotLottie(
         file: URL,
         output: URL,
         themeColor: String = "#ffffff",
@@ -67,15 +67,15 @@ public struct DotLottieConverter {
     }
 }
 
-private extension DotLottieConverter {
+private extension ChameleonConverter {
     static func createManifest(
         fileName: String,
         themeColor: String = "#ffffff",
         loop: Bool = true
     ) throws {
-        let manifest = LottieManifest(
+        let manifest = DotLottieManifest(
             animations: [
-                LottieAnimation(
+                DotLottieAnimation(
                     id: fileName,
                     loop: loop,
                     themeColor: themeColor,
@@ -84,7 +84,7 @@ private extension DotLottieConverter {
             ],
             version: "1.0",
             author: "LottieFiles",
-            generator: "LottieFiles - DotLottieConverter - Lottie Colorize"
+            generator: "LottieFiles - ChameleonKit - Chameleon dotLottie Converter"
         )
         
         let manifestData = try manifest.encode()
@@ -118,7 +118,7 @@ private extension DotLottieConverter {
     }
 }
 
-private extension DotLottieConverter {
+private extension ChameleonConverter {
     static let temporaryCompressDirectory = FileManager.default.temporaryDirectory
         .appendingPathComponent(compressDirectoryName)
     
