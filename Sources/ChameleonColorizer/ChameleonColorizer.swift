@@ -7,4 +7,5 @@
 
 import Foundation
 
-public struct ChameleonColorizer2 {}
+@available(macOS 13, *)
+public struct ChameleonColorizer {}

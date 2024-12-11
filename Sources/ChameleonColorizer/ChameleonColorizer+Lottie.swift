@@ -1,9 +1,7 @@
 import SwiftUI
 import ChameleonConverter
 
-public struct ChameleonColorizer {}
-
-@available(macOS 11, *)
+@available(macOS 13, *)
 extension ChameleonColorizer {
     // Colorize from Data
     public static func colorizeLottie(
@@ -73,9 +71,8 @@ extension ChameleonColorizer {
     }
 }
 
-@available(macOS 11, *)
+@available(macOS 13, *)
 private extension ChameleonColorizer {
-    
     static func colorize(
         dictionary: [String:Any],
         colorMapping: [String:String],
