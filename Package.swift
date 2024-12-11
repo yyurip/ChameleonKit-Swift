@@ -4,28 +4,38 @@
 import PackageDescription
 
 let package = Package(
-    name: "LottieColorize",
+    name: "ChameleonKit",
     platforms: [
         .iOS(.v15),
         .macOS(.v10_13)
     ],
     products: [
         .library(
-            name: "LottieColorize",
-            targets: ["LottieColorize"]),
+            name: "ChameleonColorizer",
+            targets: ["ChameleonColorizer"]
+        ),
+        .library(
+            name: "ChameleonConverter",
+            targets: ["ChameleonConverter"]
+        )
     ],
     dependencies: [
         .package(name: "Zip", url: "https://github.com/LottieFiles/Zip.git", from: "2.1.2")
     ],
     targets: [
         .target(
-            name: "LottieColorize",
+            name: "ChameleonColorizer",
+            dependencies: ["ChameleonConverter"],
+            path: "Sources/ChameleonColorizer"
+        ),
+        .target(
+            name: "ChameleonConverter",
             dependencies: ["Zip"],
-            path: "Sources"
+            path: "Sources/ChameleonConverter"
         ),
         .testTarget(
-            name: "LottieColorizeTests",
-            dependencies: ["LottieColorize"]
+            name: "ChameleonColorizerTests",
+            dependencies: ["ChameleonColorizer"]
         )
     ]
 )

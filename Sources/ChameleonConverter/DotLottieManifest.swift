@@ -1,15 +1,15 @@
 //
-//  LottieManifest.swift
-//  Chameleon
+//  DotLottieManifest.swift
+//  ChameleonKit
 //
 //  Created by Ygor Yuri De Pinho Pessoa on 04.12.24.
 //
 
 import Foundation
 
-public struct LottieManifest: Codable {
+internal struct DotLottieManifest: Codable {
     
-    public var animations: [LottieAnimation]
+    public var animations: [DotLottieAnimation]
     public var version: String?
     public var author: String?
     public var generator: String?
@@ -19,14 +19,14 @@ public struct LottieManifest: Codable {
     /// - Parameter data: Data to decode
     /// - Throws: Error
     /// - Returns: .lottie Manifest model
-    static func decode(from data: Data) throws -> LottieManifest {
-      try JSONDecoder().decode(LottieManifest.self, from: data)
+    static func decode(from data: Data) throws -> DotLottieManifest {
+      try JSONDecoder().decode(DotLottieManifest.self, from: data)
     }
 
     /// Loads manifest from given URL
     /// - Parameter path: URL path to Manifest
     /// - Returns: Manifest Model
-    static func load(from url: URL) throws -> LottieManifest {
+    static func load(from url: URL) throws -> DotLottieManifest {
       let data = try Data(contentsOf: url)
       return try decode(from: data)
     }
@@ -40,7 +40,7 @@ public struct LottieManifest: Codable {
     }
 
     public init(
-        animations: [LottieAnimation],
+        animations: [DotLottieAnimation],
         version: String?,
         author: String?,
         generator: String?

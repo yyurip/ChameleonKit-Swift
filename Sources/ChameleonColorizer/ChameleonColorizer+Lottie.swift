@@ -1,9 +1,10 @@
 import SwiftUI
+import ChameleonConverter
 
-@available(macOS 11, *)
-public struct LottieColorize {
+@available(macOS 13, *)
+extension ChameleonColorizer {
     // Colorize from Data
-    public static func colorize(
+    public static func colorizeLottie(
         input: Data,
         with mapping: [String : String],
         destination: URL,
@@ -15,7 +16,7 @@ public struct LottieColorize {
         else {
             throw LottieColorizeError.dataConvertion
         }
-        return try colorize(
+        return try colorizeLottie(
             input: dictionary,
             with: mapping,
             destination: destination,
@@ -24,14 +25,14 @@ public struct LottieColorize {
     }
     
     // Colorize from URL
-    public static func colorize(
+    public static func colorizeLottie(
         input: URL,
         with mapping: [String : String],
         destination: URL,
         generateDotLottieFile: Bool = true
     ) throws -> ColorizeResult {
         let data = try Data(contentsOf: input)
-        return try colorize(
+        return try colorizeLottie(
             input: data,
             with: mapping,
             destination: destination,
@@ -40,7 +41,7 @@ public struct LottieColorize {
     }
     
     // Colorize from Dictionary
-    public static func colorize(
+    public static func colorizeLottie(
         input: [String : Any],
         with mapping: [String : String],
         destination: URL,
@@ -57,7 +58,7 @@ public struct LottieColorize {
         try outData.write(to: destination)
         
         if generateDotLottieFile {
-            try DotLottieConverter.convert(
+            try ChameleonConverter.convertJsonToDotLottie(
                 file: destination,
                 output: destination.deletingLastPathComponent()
             )
@@ -70,9 +71,8 @@ public struct LottieColorize {
     }
 }
 
-@available(macOS 11, *)
-private extension LottieColorize {
-    
+@available(macOS 13, *)
+private extension ChameleonColorizer {
     static func colorize(
         dictionary: [String:Any],
         colorMapping: [String:String],
