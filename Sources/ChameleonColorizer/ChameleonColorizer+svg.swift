@@ -57,7 +57,7 @@ public extension ChameleonColorizer {
         try outData.write(to: destination)
         
         return ColorizeResult(
-            changes: 0,
+            changes: result.changes,
             outputURL: destination
         )
     }
