@@ -3,27 +3,6 @@ import ChameleonConverter
 
 @available(macOS 13, *)
 extension ChameleonColorizer {
-    // Colorize from Data
-    public static func colorizeLottie(
-        input: Data,
-        with mapping: [String : String],
-        destination: URL,
-        generateDotLottieFile: Bool = true
-    ) throws -> ColorizeResult {
-        guard let dictionary = try JSONSerialization.jsonObject(
-            with: input
-        ) as? [String:Any]
-        else {
-            throw LottieColorizeError.dataConvertion
-        }
-        return try colorizeLottie(
-            input: dictionary,
-            with: mapping,
-            destination: destination,
-            generateDotLottieFile: generateDotLottieFile
-        )
-    }
-    
     // Colorize from URL
     public static func colorizeLottie(
         input: URL,
@@ -40,22 +19,39 @@ extension ChameleonColorizer {
         )
     }
     
-    // Colorize from Dictionary
+    // Colorize from Data
     public static func colorizeLottie(
-        input: [String : Any],
+        input: Data,
         with mapping: [String : String],
         destination: URL,
         generateDotLottieFile: Bool = true
     ) throws -> ColorizeResult {
-        let result = colorize(
-            dictionary: input,
+        guard let jsonString = String(data: input, encoding: .utf8)
+        else {
+            throw LottieColorizeError.dataConvertion
+        }
+        
+        return try colorizeLottie(
+            jsonString: jsonString,
+            with: mapping,
+            destination: destination,
+            generateDotLottieFile: generateDotLottieFile
+        )
+    }
+    
+    // Colorize from Dictionary
+    public static func colorizeLottie(
+        jsonString: String,
+        with mapping: [String : String],
+        destination: URL,
+        generateDotLottieFile: Bool = true
+    ) throws -> ColorizeResult {
+        let result = try colorize(
+            jsonString: jsonString,
             colorMapping: mapping
         )
-        let outData = try JSONSerialization.data(
-            withJSONObject: result.dictionary,
-            options: []
-        )
-        try outData.write(to: destination)
+        let outputData = Data(result.jsonString.utf8)
+        try outputData.write(to: destination)
         
         if generateDotLottieFile {
             try ChameleonConverter.convertJsonToDotLottie(
@@ -74,60 +70,74 @@ extension ChameleonColorizer {
 @available(macOS 13, *)
 private extension ChameleonColorizer {
     static func colorize(
-        dictionary: [String:Any],
-        colorMapping: [String:String],
-        numberOfChanges: Int = 0
-    ) -> ColorizeMappingResult {
-        var dict = dictionary
-        var changes = numberOfChanges
-        for (key, value) in dict {
-            if key == "k" {
-                if let numbers = value as? [Double] {
-                    if numbers.count == 4 {
-                        let color = Color(
-                            red: numbers[0],
-                            green: numbers[1],
-                            blue: numbers[2],
-                            opacity: numbers[3]
-                        )
-                        
-                        if let hex = color.toHex(),
-                           let newHex = colorMapping[hex] {
-                            let newColor = Color(hex: newHex)
-                            let rgb = newColor.toRGBA()
-                            if !rgb.isEmpty {
-                                dict[key] = rgb
-                                changes += 1
-                            }
-                        }
-                    }
+        jsonString: String,
+        colorMapping: [String:String]
+    ) throws -> ColorizeMappingResult {
+        
+        guard let dictionary = try JSONSerialization.jsonObject(
+            with: Data(jsonString.utf8)
+        ) as? [String:Any]
+        else {
+            throw LottieColorizeError.dataConvertion
+        }
+        
+        let replaceableColors = identifyReplaceableColors(
+            dictionary,
+            colorMapping: colorMapping
+        )
+        
+        var newJsonString = jsonString
+        var numberOfChanges = 0
+        for (key, value) in replaceableColors {
+            numberOfChanges += newJsonString.numberOfOccurrencesOf(key)
+            newJsonString = newJsonString.replacingOccurrences(of: key, with: value)
+        }
+
+        return ColorizeMappingResult(
+            jsonString: newJsonString,
+            changes: numberOfChanges
+        )
+    }
+    
+    static func identifyReplaceableColors(
+        _ object: [String: Any],
+        colorMapping: [String: String]
+    ) -> [String: String] {
+        var changes: [String: String] = [:]
+
+        for (key, value) in object {
+            if key == "k",
+               let colorDoubleArray = doubleArray(value),
+               let oldColor = colorDoubleArray.toColor,
+               let hex = oldColor.toHex(),
+               let newHex = colorMapping[hex] {
+
+                let newColor = Color(hex: newHex)
+                if oldColor != newColor {
+                    let oldObjString = colorDoubleArray.toKColorObjectString
+                    let newObjString = newColor.toRGBADoubleArray().toKColorObjectString
+                    changes[oldObjString] = newObjString
                 }
-            }
-            
-            if var value = value as? [String: Any] {
-                let result = colorize(
-                    dictionary: value,
-                    colorMapping: colorMapping,
-                    numberOfChanges: changes
-                )
-                dict[key] = result.dictionary
-                changes = result.changes
-            } else if var values = value as? [[String:Any]] {
-                dict[key] = values.map {
-                    let result = colorize(
-                        dictionary: $0,
-                        colorMapping: colorMapping,
-                        numberOfChanges: changes
-                    )
-                    changes = result.changes
-                    return result.dictionary
+            } else if let nestedDict = value as? [String: Any] {
+                let nestedChanges = identifyReplaceableColors(nestedDict, colorMapping: colorMapping)
+                changes.merge(nestedChanges) { _, new in new }
+            } else if let nestedArray = value as? [[String: Any]] {
+                for nestedObject in nestedArray {
+                    let nestedChanges = identifyReplaceableColors(nestedObject, colorMapping: colorMapping)
+                    changes.merge(nestedChanges) { _, new in new }
                 }
             }
         }
-        return ColorizeMappingResult(
-            dictionary: dict,
-            changes: changes
-        )
+
+        return changes
+    }
+            
+    static func doubleArray(_ value: Any) -> [Double]? {
+        if let array = value as? [Double],
+            array.count == 4 {
+                return array
+        }
+        return nil
     }
 }
 
@@ -137,8 +147,28 @@ public struct ColorizeResult {
 }
 
 private struct ColorizeMappingResult {
-    var dictionary: [String:Any]
+    var jsonString: String
     var changes: Int
+}
+
+@available(macOS 11, *)
+extension Array where Element == Double {
+    var toKColorObjectString: String {
+        let colorsString = self.map(\.formatDouble).joined(separator: ",")
+        return "\"k\":[\(colorsString)]"
+    }
+    
+    var toColor: Color? {
+        if self.count == 4 {
+            return Color(
+                red: self[0],
+                green: self[1],
+                blue: self[2],
+                opacity: self[3]
+            )
+        }
+        return nil
+    }
 }
 
 @available(macOS 11, *)
@@ -164,15 +194,15 @@ extension Color {
         }
     }
     
-    func toRGBA(alpha: Bool = false) -> [Float] {
+    func toRGBADoubleArray(alpha: Bool = false) -> [Double] {
         guard let components = cgColor?.components, components.count >= 3 else {
             return []
         }
         
-        let r = Float(components[0])
-        let g = Float(components[1])
-        let b = Float(components[2])
-        var a = Float(components[3])
+        let r = Double(components[0])
+        let g = Double(components[1])
+        let b = Double(components[2])
+        var a = Double(components[3])
         
         return [r, g, b, a]
     }
@@ -206,4 +236,20 @@ extension Color {
 enum LottieColorizeError: Error {
     case outputCreation
     case dataConvertion
+}
+
+extension Double {
+    var formatDouble: String {
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 16
+        formatter.decimalSeparator = "."
+        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+    }
+}
+extension String {
+    func cleanDecimalZeros() -> String {
+        let pattern = #"(?<=[,[])(\d+)\.0(?=[,\]])"#
+        return self.replacingOccurrences(of: pattern, with: "$1", options: .regularExpression)
+    }
 }
