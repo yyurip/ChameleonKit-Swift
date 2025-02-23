@@ -1,7 +1,6 @@
 //
 //  ChameleonColorizer+Svg.swift
 //
-//
 //  Created by Ygor Yuri De Pinho Pessoa on 10.12.24.
 //
 
@@ -88,9 +87,3 @@ private struct ColorizeSvgMappingResult {
     let changes: Int
 }
 
-@available(macOS 13, *)
-extension String {
-    func numberOfOccurrencesOf(_ string: String) -> Int {
-        return self.ranges(of: string).count
-    }
-}
